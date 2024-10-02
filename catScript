@@ -1,0 +1,120 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class catScript : MonoBehaviour
+{
+    [SerializeField] private GameObject player;
+    public logicManager logic;
+    public Rigidbody2D cat;
+    public float catSpeed;
+    public bool sit = false; // if cat is stationary
+    public Vector2 lastVelocity;
+    public bool follow = false;
+    public AudioSource purr1;
+    private float catTimer = 0.0f; // how long since the cat has changed direction
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        logic = GameObject.FindGameObjectWithTag("logic").GetComponent<logicManager>();
+        cat = this.GetComponent<Rigidbody2D>();
+        cat.freezeRotation = true;
+        cat.velocity = catDirection() * catSpeed;
+    }
+
+
+    // Update is called once per frame
+    void Update()
+    {
+        //Debug.Log(follow);
+        catTimer += Time.deltaTime;
+        //Debug.Log(follow);
+        if(!follow && !sit){
+            catReset();
+        }
+        else{
+           
+           if(sit){
+                //Debug.Log("stop");
+                cat.velocity = Vector2.zero;
+           }
+           else{
+                catFollow();
+           }
+        }
+        
+        lastVelocity = cat.velocity;
+        
+    }
+
+    // cat following the player
+    private void catFollow(){
+        //Debug.Log("follow");
+        transform.position = Vector2.MoveTowards(transform.position, player.transform.position,
+        30 * Time.deltaTime);
+        follow = true;
+    }
+
+    // cat picks a new direction
+    private void catReset() {
+       // Debug.Log("go");
+        if(catTimer >= 3.0f){ // changes 
+            cat.velocity = catDirection() * catSpeed;
+            catTimer = 0.0f;
+        }
+    }
+
+
+    private Vector2 catDirection(){ // returns a direction for the cat
+        float num = Random.value;
+        //Debug.Log(num);
+        if(num <= 0.25){ // left
+            return Vector2.left;
+        }
+        else if(num > 0.25 && num <= 0.5){ // down
+            return Vector2.down;
+        }
+        else if(num > 0.5 && num <= 0.75){ // right
+            return Vector2.right;
+        }
+        else{ // up
+            return Vector2.up;
+        }
+    }
+
+    //private Vector2 
+
+    private Vector2 getPlayerPos(){
+        return PlayerScript.Instance.playerPos();
+    }
+    
+    private Vector2 getPVelocity(){
+        return PlayerScript.Instance.playerVelocity();
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision) 
+    { 
+        if(collision.gameObject.CompareTag("environment")) 
+        { 
+            var speed = lastVelocity.magnitude;
+            var direction = Vector2.Reflect(lastVelocity.normalized, collision.contacts[0].normal);
+            
+            cat.velocity =  direction * (Mathf.Max(speed, 0f));
+        }
+        
+        if(collision.gameObject.CompareTag("player")){
+            Debug.Log("got ya");
+            follow = true;
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collider){
+        Debug.Log("sit");
+        if(collider.gameObject.CompareTag("gate") && !sit){
+            purr1.Play();
+            logic.addScore();
+            sit = true;
+        }
+    } 
+}
