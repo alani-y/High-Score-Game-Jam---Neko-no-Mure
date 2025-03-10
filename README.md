@@ -13,7 +13,7 @@ To run and modify this project, you'll need:
 ## 🚀 Getting Started
 1. Clone this repository:
    ```sh
-   git clone https://github.com/yourusername/NekoNoMure.git
+   git clone https://github.com/alani-y/NekoNoMure.git
    ```
 2. Open the project in Unity.
 3. Navigate to `Scenes/` and open the main scene.
